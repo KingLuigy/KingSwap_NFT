@@ -1,9 +1,10 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.6.12;
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v3.1.0/contracts/token/ERC721/ERC721.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v3.1.0/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract KingTokenNFTKnight is ERC721 {
+contract KingTokenNFTsKing is ERC721 {
 
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
@@ -35,7 +36,7 @@ contract KingTokenNFTKnight is ERC721 {
             _tokenIds.increment();
             uint256 newItemId = _tokenIds.current();
             _mint(player, newItemId);
-            _setTokenURI(newItemId,"https://api.jsonbin.io/b/5f7367137243cd7e82466615/30");
+            _setTokenURI(newItemId,"https://api.jsonbin.io/b/5f7367137243cd7e82466615/31");
         }
         //check if address exist in wallet
         if(wallets[player] == 0){
