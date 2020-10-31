@@ -1,164 +1,94 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.6.12;
+
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./KingToken.sol";
-import "./KingTokenNFTKingWerewolf.sol";
-import "./KingTokenNFTQueenVampz.sol";
-import "./KingTokenNFTKnightMummy.sol";
-import "./KingTokenNFTsKnight.sol";
-import "./KingTokenNFTsQueen.sol";
-import "./KingTokenNFTsKing.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol";
+
 
 contract KingTokenDistributeNFT is Ownable {
     using SafeMath for uint;
 
+    // the king (ERC20) token
+    IERC20 public king;
 
-    // the king token
-    KingToken public king;
-    KingTokenNFTKingWerewolf public kw;
-    KingTokenNFTQueenVampz public qz;
-    KingTokenNFTKnightMummy public km;
+    // NFT (IERC721Enumerable) tokens
+    address public kw;
+    address public qz;
+    address public km;
 
-
-    KingTokenNFTsKnight public knight;
-    KingTokenNFTsQueen public queen;
-    KingTokenNFTsKing public kingNFTs;
-
+    address public knight;
+    address public queen;
+    address public kingNFTs;
 
     //Default Constructor
-    constructor(KingToken _king,  KingTokenNFTKingWerewolf _kw, KingTokenNFTQueenVampz _qz,KingTokenNFTKnightMummy _km,KingTokenNFTsKing _kingNFTs,KingTokenNFTsQueen _queen,KingTokenNFTsKnight _knight)
-    public{
+    constructor(IERC20 _king, address _kw, address _qz, address _km, address _kingNFTs, address _queen, address _knight)
+    public
+    {
         king = _king;
 
         kw = _kw;
         qz = _qz;
         km = _km;
 
-        kingNFTs = _kingNFTs;
-        queen = _queen;
         knight = _knight;
+        queen = _queen;
+        kingNFTs = _kingNFTs;
     }
 
-
-    function withdrawQueen(uint _amount) internal {
-        require(_amount > 0, "no kings");
-        uint256 length = queen.totalSupply();
-        uint256 length2 = qz.totalSupply();
-        uint balance = _amount;
-        uint amountToTransfer = balance.div(length.add(length2));
-
-        if(length != 0){
-            for(uint i = 1; i <=length;i++){
-                address walletAddr = queen.ownerOf(i);
-                if(balance > amountToTransfer){
-                    balance = balance.sub(amountToTransfer);
-                    king.transfer(walletAddr, amountToTransfer);
-                }else{
-                    king.transfer(walletAddr, balance);
-                }
-            }
-        }
-
-        if(length2 != 0){
-            for(uint i = 1; i <=length2;i++){
-                address walletAddr = qz.ownerOf(i);
-                if(balance > amountToTransfer){
-                    balance = balance.sub(amountToTransfer);
-                    king.transfer(walletAddr, amountToTransfer);
-                }else{
-                    king.transfer(walletAddr, balance);
-                }
-            }
-        }
-    }
-
-    function withdrawKing(uint _amount) internal {
-        require(_amount > 0, "no kings");
-        uint256 length = kingNFTs.totalSupply();
-        uint256 length2 = kw.totalSupply();
-        uint balance = _amount;
-        uint amountToTransfer = balance.div(length.add(length2));
-        
-        if(length != 0){
-            for(uint i = 1; i <=length;i++){
-                address walletAddr = kingNFTs.ownerOf(i);
-                if(balance > amountToTransfer){
-                    balance = balance.sub(amountToTransfer);
-                    king.transfer(walletAddr, amountToTransfer);
-                }else{
-                    king.transfer(walletAddr, balance);
-                }
-            }
-        }
-
-        if(length2 != 0){
-            for(uint i = 1; i <=length2;i++){
-                address walletAddr = kw.ownerOf(i);
-                if(balance > amountToTransfer){
-                    balance = balance.sub(amountToTransfer);
-                    king.transfer(walletAddr, amountToTransfer);
-                }else{
-                    king.transfer(walletAddr, balance);
-                }
-            }
-        }
-    }
-
-    function withdrawKnight(uint _amount) internal {
-        require(_amount > 0, "no kings");
-        uint256 length = knight.totalSupply();
-        uint256 length2 = km.totalSupply();
-        uint balance = _amount;
-        uint amountToTransfer = balance.div(length.add(length2));
-        
-        if(length != 0){
-            for(uint i = 1; i <=length;i++){
-                address walletAddr = knight.ownerOf(i);
-                if(balance > amountToTransfer){
-                    balance = balance.sub(amountToTransfer);
-                    king.transfer(walletAddr, amountToTransfer);
-                }else{
-                    king.transfer(walletAddr, balance);
-                }
-            }
-        }
-
-        if(length2 != 0){
-            for(uint i = 1; i <=length2;i++){
-                address walletAddr = km.ownerOf(i);
-                if(balance > amountToTransfer){
-                    balance = balance.sub(amountToTransfer);
-                    king.transfer(walletAddr, amountToTransfer);
-                }else{
-                    king.transfer(walletAddr, balance);
-                }
-            }
-        }
-    }
-
-    //Anyone can call it but it will be split to only the people in this address.
+    // @dev Only the owner may call
     function withdraw() public onlyOwner{
-        uint _amount = king.balanceOf(address(this));
-        require(_amount > 0, "zero king amount");
-        uint balance = _amount;
-        uint kingAllocation = _amount.mul(3).div(5);
-        balance = balance.sub(kingAllocation);
-        uint queenAllocation = _amount.mul(3).div(10);
-        balance = balance.sub(queenAllocation);
+        uint kingBalance = king.balanceOf(address(this));
+        require(kingBalance >= 5, "nothing to withdraw"); // i.e. `knightAllocation >= 1`
 
-
+        uint kingAllocation = kingBalance.mul(3).div(5);
+        uint queenAllocation = kingAllocation.div(2);
+        uint knightAllocation = kingBalance.sub(kingAllocation).sub(queenAllocation);
 
         withdrawKing(kingAllocation);
         withdrawQueen(queenAllocation);
-        withdrawKnight(balance);
-
-
+        withdrawKnight(knightAllocation);
     }
-       
 
-        
-        
+    function withdrawQueen(uint kingAmount) internal {
+        withdrawForNftPair(IERC721Enumerable(queen), IERC721Enumerable(qz), kingAmount);
+    }
 
+    function withdrawKing(uint kingAmount) internal {
+        withdrawForNftPair(IERC721Enumerable(kingNFTs), IERC721Enumerable(kw), kingAmount);
+    }
+
+    function withdrawKnight(uint kingAmount) internal {
+        withdrawForNftPair(IERC721Enumerable(knight), IERC721Enumerable(km), kingAmount);
+    }
+
+    function withdrawForNftPair(IERC721Enumerable nft1, IERC721Enumerable nft2, uint kingTotal) private {
+        uint nft1Qty = nft1.totalSupply();
+        uint nft2Qty = nft2.totalSupply();
+        uint totalQty = nft1Qty.add(nft2Qty);
+        if (totalQty == 0) return;
+
+        uint share = kingTotal.div(totalQty);
+        if (share == 0) return;
+
+        uint remaining = kingTotal;
+        if (nft1Qty != 0) remaining = distributeKingForNftHolders(nft1, nft1Qty, remaining, share);
+        if (nft2Qty != 0) remaining = distributeKingForNftHolders(nft2, nft2Qty, remaining, share);
+    }
+
+    function distributeKingForNftHolders(IERC721Enumerable nft, uint nftQty, uint kingTotal, uint kingAmount)
+    private returns (uint remaining) {
+        remaining = kingTotal;
+        for (uint i = 1; i <= nftQty; i++) {
+            address holder = nft.ownerOf(i);
+            if (holder == address(0)) continue;
+
+            uint amount = remaining > kingAmount ? kingAmount : remaining;
+            remaining = remaining.sub(amount);
+
+            king.transfer(holder, amount);
+        }
+    }
 }
