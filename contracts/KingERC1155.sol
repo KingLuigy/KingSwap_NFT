@@ -72,9 +72,9 @@ contract KingERC1155 is ERC1155, Ownable {
        uint endId = tokeninfo.endId;
        uint256[] memory ownIds;
        uint256[] memory amounts;
-
+        uint j = 0;
         for(uint i = startId ; i <= endId ; i ++){
-            uint j = 0;
+            
             if(balanceOf(_user,i) > 0)
                 { 
                     ownIds[j] = i;
