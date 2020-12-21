@@ -41,10 +41,11 @@ contract KingERC1155 is ERC1155, Ownable {
             uint256[] memory amounts;
             uint startId = currentId;
             uint endId = currentId + _totalSupply;
-
-            for(uint i = currentId ; i < _totalSupply ; i++){
-                ids[i] = currentId;
-                amounts[i] = 1;
+            uint j = 0;
+            for(uint i = startId ; i <= endId ; i++){
+                ids[j] = i;
+                amounts[j] = 1;
+                j++;
             }
 
             currentId = currentId + _totalSupply;
